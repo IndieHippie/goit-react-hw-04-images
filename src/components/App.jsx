@@ -18,7 +18,14 @@ function App() {
   const [isVisibleBtn, setIsVisibleBtn] = useState(false);
 
   // деструктуризація з дефолтним значенням
-  const loadPhotos = ({ withReplace = true } = {}) => {
+
+
+  useEffect(() => {
+    setShowLoader(true);
+    loadPhotos();
+  }, []);
+
+    const loadPhotos = ({ withReplace = true } = {}) => {
     API.getPhotos()
       .then(photosResponse => {
         API.calculateTotalPages(photosResponse.total);
@@ -51,11 +58,6 @@ function App() {
         setIsLoadingMore(false);
       });
   };
-
-  useEffect(() => {
-    setShowLoader(true);
-    loadPhotos();
-  }, [null]);
 
   // value What I Recive From Searchbar Input onSubmit
   const onSubmit = value => {
