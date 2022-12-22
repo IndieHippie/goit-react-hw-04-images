@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { PixabayAPI } from './API/API';
 import Modal from './Modal/Modal';
 import Button from './Button/Button';
@@ -9,22 +9,20 @@ import Loader from './Loader/Loader';
 
 const API = new PixabayAPI();
 
-class App extends React.Component {
-  state = {
-    selectedItem: null,
-    images: [],
-    showModal: false,
-    showLoader: false,
-    isLoadingMore: false,
-    isVisibleBtn: false,
-  };
+function App() {
+  const [selectedItem, setSelectedItem] = useState(null);
+  const [images, setImages] = useState([]);
+  const [showModal, setShowModal] = useState(false);
+  const [showLoader, setShowLoader] = useState(false);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [isVisibleBtn, setIsVisibleBtn] = useState(false);
 
   // деструктуризація з дефолтним значенням
-  loadPhotos = ({ withReplace = true } = {}) => {
+  const loadPhotos = ({ withReplace = true } = {}) => {
     API.getPhotos()
       .then(photosResponse => {
         API.calculateTotalPages(photosResponse.total);
-        this.setState({ isVisibleBtn: API.isShowLoadMore });
+        setIsVisibleBtn(API.isShowLoadMore);
 
         const photos = photosResponse.hits.map(hit => {
           const filterdHit = {};
@@ -35,15 +33,13 @@ class App extends React.Component {
         });
 
         if (withReplace) {
-          this.setState({ images: photos });
+          setImages(photos);
         } else {
           const filtersPhotos = photos.filter(photo => {
-            return !this.state.images.find(img => img.id === photo.id);
+            return !images.find(img => img.id === photo.id);
           });
-          this.setState(({ images }) => {
-            return {
-              images: [...images, ...filtersPhotos],
-            };
+          setImages(prevImages => {
+            return [...prevImages, ...filtersPhotos];
           });
         }
       })
@@ -51,60 +47,49 @@ class App extends React.Component {
         console.log(error);
       })
       .finally(() => {
-        this.setState({ showLoader: false, isLoadingMore: false });
+        setShowLoader(false);
+        setIsLoadingMore(false);
       });
   };
 
-  componentDidMount() {
-    this.setState({ showLoader: true });
-    this.loadPhotos();
-  }
+  useEffect(() => {
+    setShowLoader(true);
+    loadPhotos();
+  }, [null]);
 
   // value What I Recive From Searchbar Input onSubmit
-  onSubmit = value => {
-    this.setState({ images: [], showLoader: true });
+  const onSubmit = value => {
+    setImages([]);
+    setShowLoader(true);
     API.resetPage();
     API.query = value;
-    this.loadPhotos();
+    loadPhotos();
   };
 
-  loadBtn = () => {
-    this.setState({ isLoadingMore: true });
+  const loadBtn = () => {
+    setIsLoadingMore(true);
     API.incrementPage();
-    this.loadPhotos({ withReplace: false });
+    loadPhotos({ withReplace: false });
   };
 
-  toggleModal = largeImageURL => {
-    this.setState(({ showModal }) => ({
-      showModal: !showModal,
-      selectedItem: largeImageURL,
-    }));
+  const toggleModal = largeImageURL => {
+    setShowModal(prevShowModal => !prevShowModal);
+    setSelectedItem(largeImageURL);
   };
 
-  render() {
-    return (
-      <div className={styles.App}>
-        <Searchbar onSubmit={this.onSubmit} />
-        <ImageGallery
-          images={this.state.images}
-          toggleModal={this.toggleModal}
-        />
-        {this.state.showLoader && <Loader />}
-        {this.state.isVisibleBtn && (
-          <Button
-            isLoadingMore={this.state.isLoadingMore}
-            onClick={this.loadBtn}
-          />
-        )}
-        {this.state.showModal && (
-          <Modal
-            closeModal={this.toggleModal}
-            largeImageURL={this.state.selectedItem}
-          />
-        )}
-      </div>
-    );
-  }
+  return (
+    <div className={styles.App}>
+      <Searchbar onSubmit={onSubmit} />
+      <ImageGallery images={images} toggleModal={toggleModal} />
+      {showLoader && <Loader />}
+      {isVisibleBtn && (
+        <Button isLoadingMore={isLoadingMore} onClick={loadBtn} />
+      )}
+      {showModal && (
+        <Modal closeModal={toggleModal} largeImageURL={selectedItem} />
+      )}
+    </div>
+  );
 }
 
 export default App;

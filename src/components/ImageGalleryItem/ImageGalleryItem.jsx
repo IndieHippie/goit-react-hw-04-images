@@ -2,26 +2,22 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import styles from 'components/Styles.module.css';
 
-class ImageGalleryItem extends React.Component {
-  handleClickItem = () => {
-    this.props.onSelectItem(this.props.id);
-  };
-
-  render() {
+function ImageGalleryItem({toggleModal, id, webformatURL, largeImageURL}) {
+  
     return (
       <li
-        id={this.props.id}
+        id={id}
         className={styles.ImageGalleryItem}
         onClick={() => {
-          this.props.toggleModal(this.props.largeImageURL)
+          toggleModal(largeImageURL)
         }}>
         <img
           className={styles.ImageGalleryItem_image}
-          src={this.props.webformatURL} alt="" />
+          src={webformatURL} alt="" />
       </li>
     );
   }
-}
+
 
 ImageGalleryItem.protoType = {
   toggleModal: PropTypes.func.isRequired,
