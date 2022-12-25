@@ -88,7 +88,8 @@ function App() {
   useEffect(() => {
     setShowLoader(true);
     loadPhotos();
-  }, [null]);
+    //  eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // value What I Recive From Searchbar Input onSubmit
   const onSubmit = value => {
