@@ -16,43 +16,9 @@ function App() {
   const [showLoader, setShowLoader] = useState(false);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [isVisibleBtn, setIsVisibleBtn] = useState(false);
-  const [loadPhotos, setLoadPhotos] = useState(
-    ({ withReplace = true } = {}) => {
-    API.getPhotos()
-      .then(photosResponse => {
-        API.calculateTotalPages(photosResponse.total);
-        setIsVisibleBtn(API.isShowLoadMore);
-
-        const photos = photosResponse.hits.map(hit => {
-          const filterdHit = {};
-          filterdHit.id = hit.id;
-          filterdHit.webformatURL = hit.webformatURL;
-          filterdHit.largeImageURL = hit.largeImageURL;
-          return filterdHit;
-        });
-
-        if (withReplace) {
-          setImages(photos);
-        } else {
-          const filtersPhotos = photos.filter(photo => {
-            return !images.find(img => img.id === photo.id);
-          });
-          setImages(prevImages => {
-            return [...prevImages, ...filtersPhotos];
-          });
-        }
-      })
-      .catch(error => {
-        console.log(error);
-      })
-      .finally(() => {
-        setShowLoader(false);
-        setIsLoadingMore(false);
-      });
-  })
 
   // деструктуризація з дефолтним значенням
-  // const loadPhotos = ({ withReplace = true } = {}) => {
+  // const loadPhotos = useCallback(({ withReplace = true } = {}) => {
   //   API.getPhotos()
   //     .then(photosResponse => {
   //       API.calculateTotalPages(photosResponse.total);
@@ -84,14 +50,47 @@ function App() {
   //       setShowLoader(false);
   //       setIsLoadingMore(false);
   //     });
-  // };
+  // }, [images]);
+  const loadPhotos = ({ withReplace = true } = {}) => {
+    API.getPhotos()
+      .then(photosResponse => {
+        API.calculateTotalPages(photosResponse.total);
+        setIsVisibleBtn(API.isShowLoadMore);
+
+        const photos = photosResponse.hits.map(hit => {
+          const filterdHit = {};
+          filterdHit.id = hit.id;
+          filterdHit.webformatURL = hit.webformatURL;
+          filterdHit.largeImageURL = hit.largeImageURL;
+          return filterdHit;
+        });
+
+        if (withReplace) {
+          setImages(photos);
+        } else {
+          const filtersPhotos = photos.filter(photo => {
+            return !images.find(img => img.id === photo.id);
+          });
+          setImages(prevImages => {
+            return [...prevImages, ...filtersPhotos];
+          });
+        }
+      })
+      .catch(error => {
+        console.log(error);
+      })
+      .finally(() => {
+        setShowLoader(false);
+        setIsLoadingMore(false);
+      });
+  };
 
   useEffect(() => {
     setShowLoader(true);
-    setLoadPhotos();
-  }, [loadPhotos]);
+    loadPhotos();
+  }, [null]);
 
-  // value what I recive from Searchbar input onSubmit
+  // value What I Recive From Searchbar Input onSubmit
   const onSubmit = value => {
     setImages([]);
     setShowLoader(true);
